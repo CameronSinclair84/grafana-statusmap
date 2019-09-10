@@ -446,6 +446,7 @@ System.register(['lodash', 'jquery', 'moment', 'app/core/utils/kbn', 'app/core/c
     }, scope);
 
     function onMouseDown(event) {
+      console.log("mouse down");
       selection.active = true;
       selection.x1 = event.offsetX;
 

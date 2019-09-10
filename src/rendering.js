@@ -2,23 +2,23 @@ import _ from 'lodash';
 import $ from 'jquery';
 import moment from 'moment';
 import kbn from 'app/core/utils/kbn';
-import {appEvents, contextSrv} from 'app/core/core';
-import {tickStep, getScaledDecimals, getFlotTickSize} from 'app/core/utils/ticks';
+import { appEvents, contextSrv } from 'app/core/core';
+import { tickStep, getScaledDecimals, getFlotTickSize } from 'app/core/utils/ticks';
 import d3 from 'd3';
 import * as d3ScaleChromatic from './libs/d3-scale-chromatic/index';
-import {StatusHeatmapTooltip} from './tooltip';
-import {AnnotationTooltip} from './annotations';
+import { StatusHeatmapTooltip } from './tooltip';
+import { AnnotationTooltip } from './annotations';
 
 let MIN_CARD_SIZE = 5,
-    CARD_H_SPACING = 2,
-    CARD_V_SPACING = 2,
-    CARD_ROUND = 0,
-    DATA_RANGE_WIDING_FACTOR = 1.2,
-    DEFAULT_X_TICK_SIZE_PX = 100,
-    DEFAULT_Y_TICK_SIZE_PX = 50,
-    X_AXIS_TICK_PADDING = 10,
-    Y_AXIS_TICK_PADDING = 5,
-    MIN_SELECTION_WIDTH = 2;
+  CARD_H_SPACING = 2,
+  CARD_V_SPACING = 2,
+  CARD_ROUND = 0,
+  DATA_RANGE_WIDING_FACTOR = 1.2,
+  DEFAULT_X_TICK_SIZE_PX = 100,
+  DEFAULT_Y_TICK_SIZE_PX = 50,
+  X_AXIS_TICK_PADDING = 10,
+  Y_AXIS_TICK_PADDING = 5,
+  MIN_SELECTION_WIDTH = 2;
 
 export default function link(scope, elem, attrs, ctrl) {
   let data, cardsData, timeRange, panel, heatmap;
@@ -29,15 +29,15 @@ export default function link(scope, elem, attrs, ctrl) {
   let annotationTooltip = new AnnotationTooltip($heatmap, scope);
 
   let width, height,
-      yScale, xScale,
-      chartWidth, chartHeight,
-      chartTop, chartBottom,
-      yAxisWidth, xAxisHeight,
-      cardVSpacing, cardHSpacing, cardRound,
-      cardWidth, cardHeight,
-      colorScale, opacityScale,
-      mouseUpHandler,
-      xGridSize, yGridSize;
+    yScale, xScale,
+    chartWidth, chartHeight,
+    chartTop, chartBottom,
+    yAxisWidth, xAxisHeight,
+    cardVSpacing, cardHSpacing, cardRound,
+    cardWidth, cardHeight,
+    colorScale, opacityScale,
+    mouseUpHandler,
+    xGridSize, yGridSize;
 
   let yOffset = 0;
 
@@ -47,9 +47,9 @@ export default function link(scope, elem, attrs, ctrl) {
     x2: -1
   };
 
-  let padding = {left: 0, right: 0, top: 0, bottom: 0},
-      margin = {left: 25, right: 15, top: 10, bottom: 20},
-      dataRangeWidingFactor = DATA_RANGE_WIDING_FACTOR;
+  let padding = { left: 0, right: 0, top: 0, bottom: 0 },
+    margin = { left: 25, right: 15, top: 10, bottom: 20 },
+    dataRangeWidingFactor = DATA_RANGE_WIDING_FACTOR;
 
   ctrl.events.on('render', () => {
     render();
@@ -98,7 +98,7 @@ export default function link(scope, elem, attrs, ctrl) {
     // Scale timestamps to cards centers
     scope.xScale = xScale = d3.scaleTime()
       .domain([timeRange.from, timeRange.to])
-      .range([xGridSize/2, chartWidth-xGridSize/2]);
+      .range([xGridSize / 2, chartWidth - xGridSize / 2]);
 
     let ticks = chartWidth / DEFAULT_X_TICK_SIZE_PX;
     let grafanaTimeFormatter = grafanaTimeFormat(ticks, timeRange.from, timeRange.to);
@@ -135,7 +135,7 @@ export default function link(scope, elem, attrs, ctrl) {
     // svg has y=0 on the top, so top card should have a minimal value in range
     range.push(step);
     for (let i = 1; i < ticks.length; i++) {
-      range.push(step * (i+1));
+      range.push(step * (i + 1));
     }
     return d3.scaleOrdinal()
       .domain(ticks)
@@ -165,9 +165,9 @@ export default function link(scope, elem, attrs, ctrl) {
     }
 
     if (panel.yAxisSort == 'a → z') {
-      ticks.sort((a, b) => a.localeCompare(b, 'en', {ignorePunctuation: false, numeric: true}));
+      ticks.sort((a, b) => a.localeCompare(b, 'en', { ignorePunctuation: false, numeric: true }));
     } else if (panel.yAxisSort == 'z → a') {
-      ticks.sort((b, a) => a.localeCompare(b, 'en', {ignorePunctuation: false, numeric: true}));
+      ticks.sort((b, a) => a.localeCompare(b, 'en', { ignorePunctuation: false, numeric: true }));
     }
 
     let yAxisScale = getYAxisScale(ticks);
@@ -211,12 +211,12 @@ export default function link(scope, elem, attrs, ctrl) {
       y_min = 0;
     }
 
-    return {y_min, y_max};
+    return { y_min, y_max };
   }
 
   function tickValueFormatter(decimals, scaledDecimals = null) {
     let format = panel.yAxis.format;
-    return function(value) {
+    return function (value) {
       return kbn.valueFormats[format](value, decimals, scaledDecimals);
     };
   }
@@ -258,7 +258,7 @@ export default function link(scope, elem, attrs, ctrl) {
 
     // TODO allow per-y cardWidth!
     // we need to fill chartWidth with xBucketSize cards.
-    xGridSize = chartWidth / (cardsData.xBucketSize+1);
+    xGridSize = chartWidth / (cardsData.xBucketSize + 1);
     cardWidth = xGridSize - cardHSpacing;
 
     addXAxis();
@@ -287,30 +287,30 @@ export default function link(scope, elem, attrs, ctrl) {
     let cards = heatmap.selectAll(".status-heatmap-card").data(cardsData.cards);
     cards.append("title");
     cards = cards.enter().append("rect")
-    .attr("cardId", c => c.id)
-    .attr("x", getCardX)
-    .attr("width", getCardWidth)
-    .attr("y", getCardY)
-    .attr("height", getCardHeight)
-    .attr("rx", cardRound)
-    .attr("ry", cardRound)
-    .attr("class", "bordered status-heatmap-card")
-    .style("fill", getCardColor)
-    .style("stroke", getCardColor)
-    .style("stroke-width", 0)
-    //.style("stroke-width", getCardStrokeWidth)
-    //.style("stroke-dasharray", "3,3")
-    .style("opacity", getCardOpacity);
+      .attr("cardId", c => c.id)
+      .attr("x", getCardX)
+      .attr("width", getCardWidth)
+      .attr("y", getCardY)
+      .attr("height", getCardHeight)
+      .attr("rx", cardRound)
+      .attr("ry", cardRound)
+      .attr("class", "bordered status-heatmap-card")
+      .style("fill", getCardColor)
+      .style("stroke", getCardColor)
+      .style("stroke-width", 0)
+      //.style("stroke-width", getCardStrokeWidth)
+      //.style("stroke-dasharray", "3,3")
+      .style("opacity", getCardOpacity);
 
     let $cards = $heatmap.find(".status-heatmap-card");
     $cards.on("mouseenter", (event) => {
       tooltip.mouseOverBucket = true;
       highlightCard(event);
     })
-    .on("mouseleave", (event) => {
-      tooltip.mouseOverBucket = false;
-      resetCardHighLight(event);
-    });
+      .on("mouseleave", (event) => {
+        tooltip.mouseOverBucket = false;
+        resetCardHighLight(event);
+      });
 
     _renderAnnotations();
 
@@ -326,8 +326,8 @@ export default function link(scope, elem, attrs, ctrl) {
     let current_card = d3.select(event.target);
     tooltip.originalFillColor = color;
     current_card.style("fill", highlightColor)
-    .style("stroke", strokeColor)
-    .style("stroke-width", 1);
+      .style("stroke", strokeColor)
+      .style("stroke-width", 1);
   }
 
   function resetCardHighLight(event) {
@@ -339,7 +339,7 @@ export default function link(scope, elem, attrs, ctrl) {
   }
 
   function getColorScale(maxValue, minValue = 0) {
-    let colorScheme = _.find(ctrl.colorSchemes, {value: panel.color.colorScheme});
+    let colorScheme = _.find(ctrl.colorSchemes, { value: panel.color.colorScheme });
     let colorInterpolator = d3ScaleChromatic[colorScheme.value];
     let colorScaleInverted = colorScheme.invert === 'always' ||
       (colorScheme.invert === 'dark' && !contextSrv.user.lightTheme);
@@ -356,12 +356,12 @@ export default function link(scope, elem, attrs, ctrl) {
   function setOpacityScale(maxValue) {
     if (panel.color.colorScale === 'linear') {
       opacityScale = d3.scaleLinear()
-      .domain([0, maxValue])
-      .range([0, 1]);
+        .domain([0, maxValue])
+        .range([0, 1]);
     } else if (panel.color.colorScale === 'sqrt') {
       opacityScale = d3.scalePow().exponent(panel.color.exponent)
-      .domain([0, maxValue])
-      .range([0, 1]);
+        .domain([0, maxValue])
+        .range([0, 1]);
     }
   }
 
@@ -370,10 +370,10 @@ export default function link(scope, elem, attrs, ctrl) {
     // cx is the center of the card. Card should be placed to the left.
     let cx = xScale(d.x);
 
-    if (cx - cardWidth/2 < 0) {
-      x = yAxisWidth + cardHSpacing/2;
+    if (cx - cardWidth / 2 < 0) {
+      x = yAxisWidth + cardHSpacing / 2;
     } else {
-      x = yAxisWidth + cx - cardWidth/2;
+      x = yAxisWidth + cx - cardWidth / 2;
     }
 
     return x;
@@ -384,14 +384,14 @@ export default function link(scope, elem, attrs, ctrl) {
     let w;
     let cx = xScale(d.x);
 
-    if (cx < cardWidth/2) {
+    if (cx < cardWidth / 2) {
       // Center should not exceed half of card.
       // Cut card to the left to prevent overlay of y axis.
-      let cutted_width = (cx - cardHSpacing/2) + cardWidth/2;
+      let cutted_width = (cx - cardHSpacing / 2) + cardWidth / 2;
       w = cutted_width > 0 ? cutted_width : 0;
-    } else if (chartWidth - cx < cardWidth/2) {
+    } else if (chartWidth - cx < cardWidth / 2) {
       // Cut card to the right to prevent overlay of right graph edge.
-      w = cardWidth/2 + (chartWidth - cx - cardHSpacing/2);
+      w = cardWidth / 2 + (chartWidth - cx - cardHSpacing / 2);
     } else {
       w = cardWidth;
     }
@@ -400,24 +400,24 @@ export default function link(scope, elem, attrs, ctrl) {
     w = Math.max(w, MIN_CARD_SIZE);
 
     if (cardHSpacing == 0) {
-      w = w+1;
+      w = w + 1;
     }
 
     return w;
   }
 
   function getCardY(d) {
-    return yScale(d.y) + chartTop - cardHeight - cardVSpacing/2;
+    return yScale(d.y) + chartTop - cardHeight - cardVSpacing / 2;
   }
 
   function getCardHeight(d) {
     let ys = yScale(d.y);
-    let y = ys + chartTop - cardHeight - cardVSpacing/2;
+    let y = ys + chartTop - cardHeight - cardVSpacing / 2;
     let h = cardHeight;
 
     // Cut card height to prevent overlay
     if (y < chartTop) {
-      h = ys - cardVSpacing/2;
+      h = ys - cardVSpacing / 2;
     } else if (ys > chartBottom) {
       h = chartBottom - y;
     } else if (y + cardHeight > chartBottom) {
@@ -430,7 +430,7 @@ export default function link(scope, elem, attrs, ctrl) {
     h = Math.max(h, MIN_CARD_SIZE);
 
     if (cardVSpacing == 0) {
-      h = h+1
+      h = h + 1
     }
 
     return h;
@@ -447,7 +447,7 @@ export default function link(scope, elem, attrs, ctrl) {
   }
 
   function getCardOpacity(d) {
-    if (panel.nullPointMode === 'as empty' && d.value == null ) {
+    if (panel.nullPointMode === 'as empty' && d.value == null) {
       return 0;
     }
     if (panel.color.mode === 'opacity') {
@@ -478,10 +478,11 @@ export default function link(scope, elem, attrs, ctrl) {
   }, scope);
 
   function onMouseDown(event) {
+    console.log("mouse down");
     selection.active = true;
     selection.x1 = event.offsetX;
 
-    mouseUpHandler = function() {
+    mouseUpHandler = function () {
       onMouseUp();
     };
 
@@ -495,8 +496,8 @@ export default function link(scope, elem, attrs, ctrl) {
 
     let selectionRange = Math.abs(selection.x2 - selection.x1);
     if (selection.x2 >= 0 && selectionRange > MIN_SELECTION_WIDTH) {
-      let timeFrom = xScale.invert(Math.min(selection.x1, selection.x2) - yAxisWidth - xGridSize/2);
-      let timeTo = xScale.invert(Math.max(selection.x1, selection.x2) - yAxisWidth - xGridSize/2);
+      let timeFrom = xScale.invert(Math.min(selection.x1, selection.x2) - yAxisWidth - xGridSize / 2);
+      let timeTo = xScale.invert(Math.max(selection.x1, selection.x2) - yAxisWidth - xGridSize / 2);
 
       ctrl.timeSrv.setTime({
         from: moment.utc(timeFrom),
@@ -533,7 +534,7 @@ export default function link(scope, elem, attrs, ctrl) {
   }
 
   function emitGraphHoverEvet(event) {
-    let x = xScale.invert(event.offsetX - yAxisWidth - xGridSize/2).valueOf();
+    let x = xScale.invert(event.offsetX - yAxisWidth - xGridSize / 2).valueOf();
     let y = yScale(event.offsetY);
     let pos = {
       pageX: event.pageX,
@@ -547,7 +548,7 @@ export default function link(scope, elem, attrs, ctrl) {
     pos.panelRelY = Math.max(event.offsetY / height, 0.001);
 
     // broadcast to other graph panels that we are hovering
-    appEvents.emit('graph-hover', {pos: pos, panel: panel});
+    appEvents.emit('graph-hover', { pos: pos, panel: panel });
   }
 
   function limitSelection(x2) {
@@ -564,11 +565,11 @@ export default function link(scope, elem, attrs, ctrl) {
 
       if (selectionWidth > MIN_SELECTION_WIDTH) {
         heatmap.append("rect")
-        .attr("class", "status-heatmap-selection")
-        .attr("x", selectionX)
-        .attr("width", selectionWidth)
-        .attr("y", chartTop)
-        .attr("height", chartHeight);
+          .attr("class", "status-heatmap-selection")
+          .attr("x", selectionX)
+          .attr("width", selectionWidth)
+          .attr("y", chartTop)
+          .attr("height", chartHeight);
       }
     }
   }
@@ -591,14 +592,14 @@ export default function link(scope, elem, attrs, ctrl) {
       posX = Math.min(posX, chartWidth + yAxisWidth);
 
       heatmap.append("g")
-      .attr("class", "status-heatmap-crosshair")
-      .attr("transform", "translate(" + posX + ",0)")
-      .append("line")
-      .attr("x1", 1)
-      .attr("y1", chartTop)
-      .attr("x2", 1)
-      .attr("y2", chartBottom)
-      .attr("stroke-width", 1);
+        .attr("class", "status-heatmap-crosshair")
+        .attr("transform", "translate(" + posX + ",0)")
+        .append("line")
+        .attr("x1", 1)
+        .attr("y1", chartTop)
+        .attr("x2", 1)
+        .attr("y2", chartBottom)
+        .attr("stroke-width", 1);
     }
   }
 
@@ -649,12 +650,12 @@ export default function link(scope, elem, attrs, ctrl) {
     if (!ctrl.annotations || ctrl.annotations.length == 0) {
       return;
     }
-  
+
     if (!heatmap) {
       return;
     }
 
-    let annoData = _.map(ctrl.annotations, (d,i) => ({"x": Math.floor(yAxisWidth + xScale(d.time)), "id":i, "anno": d.source}));
+    let annoData = _.map(ctrl.annotations, (d, i) => ({ "x": Math.floor(yAxisWidth + xScale(d.time)), "id": i, "anno": d.source }));
 
 
     let anno = heatmap
@@ -674,38 +675,38 @@ export default function link(scope, elem, attrs, ctrl) {
       .style("stroke", d => d.anno.iconColor)
       .style("stroke-width", 1)
       .style("stroke-dasharray", "3,3")
-    ;
+      ;
     anno.append("polygon")
-      .attr("points", d => [[d.x, chartBottom+1], [d.x-5, chartBottom+6], [d.x+5, chartBottom+6]].join(" "))
+      .attr("points", d => [[d.x, chartBottom + 1], [d.x - 5, chartBottom + 6], [d.x + 5, chartBottom + 6]].join(" "))
       .style("stroke-width", 0)
       .style("fill", d => d.anno.iconColor)
-    ;
+      ;
     // Polygons didn't fire mouseevents
-    anno.append("rect") 
-      .attr("x", d => d.x-5)
+    anno.append("rect")
+      .attr("x", d => d.x - 5)
       .attr("width", 10)
-      .attr("y", chartBottom+1)
+      .attr("y", chartBottom + 1)
       .attr("height", 5)
       .attr("class", "statusmap-annotation-tick")
       .attr("annoId", d => d.id)
       .style("opacity", 0)
-    ;
+      ;
 
     let $ticks = $heatmap.find(".statusmap-annotation-tick");
     $ticks.on("mouseenter", (event) => {
       annotationTooltip.mouseOverAnnotationTick = true;
     })
-    .on("mouseleave", (event) => {
-      annotationTooltip.mouseOverAnnotationTick = false;
-    });
-    
+      .on("mouseleave", (event) => {
+        annotationTooltip.mouseOverAnnotationTick = false;
+      });
+
   }
 }
 
 function grafanaTimeFormat(ticks, min, max) {
   if (min && max && ticks) {
     let range = max - min;
-    let secPerTick = (range/ticks) / 1000;
+    let secPerTick = (range / ticks) / 1000;
     let oneDay = 86400000;
     let oneYear = 31536000000;
 
