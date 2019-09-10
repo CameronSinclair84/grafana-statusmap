@@ -10,7 +10,7 @@
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/flant/grafana-statusmap.git"
+    "url": "https://github.com/CameronSinclair84/grafana-statusmap.git"
   },
   "devDependencies": {
     "babel": "^6.23.0",
